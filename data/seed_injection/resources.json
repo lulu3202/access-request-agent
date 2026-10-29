@@ -1,0 +1,7 @@
+[
+  {"resource": "wiki",               "sensitivity": "standard"},
+  {"resource": "jira",               "sensitivity": "standard"},
+  {"resource": "billing-db",         "sensitivity": "sensitive"},
+  {"resource": "hr-records",         "sensitivity": "sensitive"},
+  {"resource": "prod-admin-console", "sensitivity": "admin"}
+]

@@ -1,0 +1,22 @@
+# Python
+.venv/
+__pycache__/
+.pytest_cache/
+*.pyc
+
+# Secrets: never commit keys
+.env
+
+# Emergency-stop switch (runtime only)
+STOP
+
+# Live state, rebuilt from data/seed/ by reset_data()
+data/*.json
+data/events.jsonl
+data/audit_log.jsonl
+
+# Eval scratch: partial --rows runs. Full labelled runs are committed as evidence (see CONTAINMENT_MAP.md).
+evals/results/*-rows-*.csv
+
+# OS
+.DS_Store

@@ -1,0 +1,11 @@
+{
+  "apr-seed0001": {
+    "approval_id": "apr-seed0001",
+    "user_id": "ben.thomas",
+    "resource": "billing-db",
+    "reason": "pre-existing grant, recorded when the approvals store was created",
+    "decision": "Approve",
+    "approver": "pre-existing-grant",
+    "timestamp": "2026-10-01T09:00:00+00:00"
+  }
+}
