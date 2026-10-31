@@ -105,16 +105,17 @@ streamlit run app.py
 ```
 
 Chat on the left, approval card when a request needs a human, live access table on the right, an Operate
-tab with anomalies and daily counts, and the "Pause agent" switch in the sidebar.
+tab with anomalies, daily counts and recent events. The sidebar has the "Pause agent" switch, the requester
+and approver names that go into the traces and the audit log, and a "Reset demo data" button.
 
 **Evals:**
 
 ```bash
-python evals/run_evals.py --repeat 3                                    # golden set, gates enforced in code
-python evals/run_evals.py --repeat 3 --prompt-only-checks               # same, loop checks off
-python evals/run_evals.py --set adversarial --repeat 3                  # requests that push to skip checks
-python evals/run_evals.py --compromised                                 # scripted compromised model
-python evals/run_evals.py --compromised --prompt-only-checks
+python evals/run_evals.py --repeat 3 --label my-golden                          # golden set, gates enforced in code
+python evals/run_evals.py --repeat 3 --prompt-only-checks --label my-golden-prompt  # same, loop checks off
+python evals/run_evals.py --set adversarial --repeat 3 --label my-adversarial   # requests that push to skip checks
+python evals/run_evals.py --compromised --label my-compromised                  # scripted compromised model, no API calls
+python evals/run_evals.py --compromised --prompt-only-checks --label my-compromised-prompt
 ```
 
 An eval is a list of requests, each with the behaviour we expect (`evals/golden_set.csv`), and a script that
@@ -138,8 +139,8 @@ unrequested revoke in one run of three) while the single-run pass rate still loo
 
 The output is a terminal table (with `blocked` and out-of-scope columns), a summary with pass rates and
 pass^N, `evals/results/<label>.csv` (written before the upload), and a Phoenix experiment named `--label`.
-Without `--label`, a run uses a default name and overwrites the stored results of that name, so give your
-own runs a label. Other flags: `--no-phoenix`, `--rows GS03,GS15`.
+Always pass `--label`: without it, a run takes a default name (such as `adversarial-v3-scope-check`) and
+overwrites the stored result that CONTAINMENT_MAP.md cites. Other flags: `--no-phoenix`, `--rows GS03,GS15`.
 
 **Recover drill:**
 
