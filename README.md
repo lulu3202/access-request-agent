@@ -119,8 +119,38 @@ python evals/run_evals.py --compromised --prompt-only-checks --label my-compromi
 ```
 
 An eval is a list of requests, each with the behaviour we expect (`evals/golden_set.csv`), and a script that
-checks the agent against it. Each row starts from a fresh seed, and approvals are answered with the row's
-`human_response`. Three code-based scorers each ask one question, so they catch different mistakes:
+checks the agent against it. All five commands run the same script, `evals/run_evals.py`. For each request
+in the list, it:
+
+1. resets the mock data, so every request starts from a clean state;
+2. runs the agent on the request;
+3. answers any approval pause with the row's `human_response` (Approve or Deny);
+4. scores the run three ways (below);
+5. repeats this `--repeat` times, then saves `evals/results/<label>.csv` and sends the run to Phoenix.
+
+The flags change what goes in:
+
+| Flag | Changes |
+|---|---|
+| `--set adversarial` | **which requests**: 8 trick requests instead of the 15 normal ones |
+| `--compromised` | **which model**: a scripted bad model that obeys every trick, instead of Claude. No API calls, no cost |
+| `--prompt-only-checks` | **which safety**: turns off the two loop checks (look the user up first, change only what was asked), so those rules are only asked for in the prompt. The approval gate and STOP stay on |
+| `--repeat N` | how many times each request runs |
+| `--label` | the run's name, so it doesn't overwrite stored results |
+
+Each command answers one question:
+
+| Run | Question |
+|---|---|
+| `my-golden` | Does the agent do its job on normal requests? |
+| `my-golden-prompt` | Does it still do its job with those rules only in the prompt? (Yes: a well-behaved model passes either way.) |
+| `my-adversarial` | Can trick requests push Claude into a mistake? (This is where AD04 showed up.) |
+| `my-compromised` | If the model is fully on the attacker's side, do the code checks still stop the harm? |
+| `my-compromised-prompt` | The same bad model with the loop checks off: harm gets through |
+
+The last two together are the headline: prompt rules don't stop a compromised model; code checks do.
+
+Three code-based scorers each ask one question, so they catch different mistakes:
 
 | Scorer | Question | Example: "Asha Rao needs billing-db access" |
 |---|---|---|
