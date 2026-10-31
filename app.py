@@ -4,6 +4,7 @@
 """
 
 import json
+import uuid
 
 import pandas as pd
 import streamlit as st
@@ -36,6 +37,7 @@ store.set_run_label("ui")
 state = st.session_state
 state.setdefault("history", [])  # (role, text, decision)
 state.setdefault("run", None)
+state.setdefault("session_id", f"ui-{uuid.uuid4().hex[:8]}")  # one per browser session
 
 
 def record(run):
@@ -60,12 +62,16 @@ with st.sidebar:
         agent.STOP_FILE.unlink()
     if paused:
         st.error("Agent paused. Requests end as STOPPED.")
+    requester = st.text_input("Requester (you)", value="demo-user",
+                              help="Who is asking. Traced as user.id and written to the audit log.")
     approver = st.text_input("Approver name", value="team-lead")
     if st.button("Reset demo data"):
         store.reset_data()
         state.history, state.run = [], None
+        state.session_id = f"ui-{uuid.uuid4().hex[:8]}"  # a fresh take is a fresh Phoenix session
         st.rerun()
     st.caption(f"Model: {agent.model_id()}")
+    st.caption(f"Session: `{state.session_id}`")
 
 agent_tab, operate_tab = st.tabs(["Agent", "Operate"])
 
@@ -107,7 +113,8 @@ with agent_tab:
         if prompt:
             state.history.append(("user", prompt, None))
             try:
-                state.run = agent.start(prompt)
+                state.run = agent.start(prompt, requester=requester or "unknown",
+                                        session_id=state.session_id)
                 record(state.run)
             except Exception as err:
                 state.history.append(("assistant", f"Error: {type(err).__name__}: {err}", None))
@@ -131,7 +138,21 @@ with operate_tab:
     for a in alerts:
         st.error(f"**{a['rule']}**: {a['user_id']} → {a['resource']}")
     st.caption("Rules: access held by an inactive/terminated user; sensitive/admin grant with no "
-               "matching Approve. Run `python drills/recover_drill.py` to fix the first one.")
+               "matching Approve; grant made outside the agent (no requester on record). "
+               "Run `python drills/recover_drill.py` to fix the first one.")
+
+    st.subheader("Recent events")
+    recent = store.read_audit_log()[-20:][::-1]
+    if recent:
+        st.dataframe(pd.DataFrame([{"time": e["ts"], "run": e.get("run_label"), "type": e["type"],
+                                    "user": e.get("user_id"), "resource": e.get("resource"),
+                                    "requester": e.get("requester", "-"),
+                                    "trace_id": e.get("trace_id", "-")} for e in recent]),
+                     hide_index=True, use_container_width=True)
+    else:
+        st.info("No events yet.")
+    st.caption("Newest first. requester is who asked; trace_id opens the Phoenix trace that "
+               "explains the event. No requester means the change did not go through the agent.")
 
     st.subheader("Events per day")
     days = daily_counts()

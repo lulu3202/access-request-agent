@@ -1,4 +1,4 @@
-"""Watch the agent over time: daily event counts and two anomaly rules.
+"""Watch the agent over time: daily event counts and three anomaly rules.
 
     python operate/monitor.py
 
@@ -33,7 +33,7 @@ def counts_by_run_label() -> Counter:
 
 # BOOK: Operate
 def find_anomalies() -> list[dict]:
-    """Two readable rules over the live state. Each alert names the user and resource."""
+    """Three readable rules over the live state. Each alert names the user and resource."""
     alerts = []
     catalog = store.catalog()
     approved = {(a["user_id"], a["resource"]) for a in store.all_approvals().values()
@@ -50,6 +50,16 @@ def find_anomalies() -> list[dict]:
             if catalog.get(resource) in NEEDS_APPROVAL and (user_id, resource) not in approved:
                 alerts.append({"rule": f"{catalog[resource]} grant with no matching Approve",
                                "user_id": user_id, "resource": resource})
+
+    # Rule 3: a grant made outside the agent. The loop stamps every event with a requester,
+    # so a held grant whose latest grant event has none bypassed the agent's checks.
+    # Seed grants have no event at all and are not flagged.
+    held = {(u, r) for u, rs in store.all_grants().items() for r in rs}
+    last_grant = {(e["user_id"], e["resource"]): e for e in store.read_events() if e["type"] == "grant"}
+    for (user_id, resource), event in last_grant.items():
+        if (user_id, resource) in held and not event.get("requester"):
+            alerts.append({"rule": "grant made outside the agent (no requester on record)",
+                           "user_id": user_id, "resource": resource})
     return alerts
 
 

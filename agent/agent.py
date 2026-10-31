@@ -100,6 +100,8 @@ def parse_decision(text: str) -> tuple[str, str]:
 @dataclass
 class Run:
     request: str
+    requester: str | None = None                   # who asked (not the user getting access)
+    session_id: str | None = None                  # groups one conversation's traces in Phoenix
     enforce_check_user_first: bool = True
     enforce_scope: bool = True
     messages: list = field(default_factory=list)
@@ -129,16 +131,25 @@ class Run:
 
 
 def start(request: str, client=None, enforce_check_user_first: bool = True,
-          enforce_scope: bool = True, tags: dict | None = None) -> Run:
-    """tags are extra root-span attributes, e.g. {"eval.row_id": "GS03"}."""
-    run = Run(request=request, enforce_check_user_first=enforce_check_user_first,
-              enforce_scope=enforce_scope)
+          enforce_scope: bool = True, tags: dict | None = None,
+          requester: str | None = None, session_id: str | None = None) -> Run:
+    """tags are extra root-span attributes, e.g. {"eval.row_id": "GS03"}.
+
+    requester and session_id become the OpenInference user.id and session.id attributes,
+    so Phoenix can filter by who asked and group a conversation in its Sessions tab.
+    Events from the loop always carry a requester ("unknown" if none is given), so the
+    monitor can tell them apart from writes made outside the agent.
+    """
+    requester = requester or "unknown"
+    run = Run(request=request, requester=requester, session_id=session_id,
+              enforce_check_user_first=enforce_check_user_first, enforce_scope=enforce_scope)
     run._client = client or make_client()
     run.messages.append({"role": "user", "content": request})
+    who = {k: v for k, v in (("user.id", requester), ("session.id", session_id)) if v}
     run._span = tracer.start_span("access_request", attributes=_attrs(
         "AGENT", **{"input.value": request, "enforce_check_user_first": enforce_check_user_first,
-                    "enforce_scope": enforce_scope, **(tags or {})}))
-    with trace.use_span(run._span, end_on_exit=False):
+                    "enforce_scope": enforce_scope, **who, **(tags or {})}))
+    with trace.use_span(run._span, end_on_exit=False), store.acting_for(requester):
         _drive(run)
     return run
 
@@ -148,7 +159,7 @@ def resume(run: Run, decision: str, approver: str) -> Run:
     """A human answered the pending approval. Approve runs the proposed call; Deny ends the request."""
     pending, run.pending = run.pending, None
     tool, proposed = pending["requested_call"]["tool"], pending["requested_call"]["args"]
-    with trace.use_span(run._span, end_on_exit=False):
+    with trace.use_span(run._span, end_on_exit=False), store.acting_for(run.requester):
         approval = store.record_approval(pending["user_id"], pending["resource"],
                                          f"{pending['why']}: {run.request}", decision, approver)
         store.log_event("approval", pending["user_id"], pending["resource"],

@@ -20,3 +20,6 @@ evals/results/*-rows-*.csv
 
 # OS
 .DS_Store
+
+# Private notes for the book and video (not part of the public repo)
+docs/

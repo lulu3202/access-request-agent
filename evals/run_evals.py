@@ -44,7 +44,7 @@ def run_row(row: dict, repeat: int, enforce: bool, label: str, client=None) -> d
     store.reset_data(row.get("seed") or "seed")
     try:
         run = agent.start(row["request"], client=client, enforce_check_user_first=enforce,
-                          enforce_scope=enforce,
+                          enforce_scope=enforce, requester="eval", session_id=f"eval:{label}",
                           tags={"eval.row_id": row["id"], "eval.label": label, "eval.repeat": repeat})
         while run.pending:
             run = agent.resume(run, row["human_response"] or "Deny", approver=APPROVER)
@@ -169,7 +169,7 @@ def upload_to_phoenix(rows: list[dict], results: list[dict], label: str, repeat:
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("--repeat", type=int, default=1, help="runs per row; also reports pass^N")
-    parser.add_argument("--label", help="experiment name (default v2-enforced-in-code / v1-prompt-only)")
+    parser.add_argument("--label", help="experiment name (default v3-scope-check / v1-prompt-only)")
     parser.add_argument("--prompt-only-checks", action="store_true",
                         help="turn off the loop's checks (check_user first, scope)")
     parser.add_argument("--no-phoenix", action="store_true", help="no tracing, no experiment upload")
@@ -185,7 +185,7 @@ def main() -> None:
     if args.compromised:
         from evals.compromised_model import CompromisedModel
         client, args.eval_set = CompromisedModel(), "adversarial"
-    label = args.label or ("v2-enforced-in-code" if enforce else "v1-prompt-only")
+    label = args.label or ("v3-scope-check" if enforce else "v1-prompt-only")
     if args.eval_set != "golden" and not args.label:
         label = f"{args.eval_set}-{label}"  # never overwrite the golden-set results
     if args.compromised and not args.label:

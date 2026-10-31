@@ -11,8 +11,12 @@ import json
 import os
 import shutil
 import uuid
+from contextlib import contextmanager
+from contextvars import ContextVar
 from datetime import datetime, timezone
 from pathlib import Path
+
+from opentelemetry import trace
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 # DATA_DIR can be overridden (tests point it at a temp folder).
@@ -33,6 +37,27 @@ RUN_LABEL = os.getenv("ACCESS_AGENT_RUN_LABEL", "manual")
 def set_run_label(label: str) -> None:
     global RUN_LABEL
     RUN_LABEL = label
+
+
+# Who asked for the request being handled. A ContextVar, not a global: the app serves
+# several people from one process, each in its own thread.
+_requester: ContextVar[str | None] = ContextVar("requester", default=None)
+
+
+@contextmanager
+def acting_for(requester: str | None):
+    """Every event logged inside this block carries the requester."""
+    token = _requester.set(requester)
+    try:
+        yield
+    finally:
+        _requester.reset(token)
+
+
+def current_trace_id() -> str | None:
+    """The trace this code runs in, as Phoenix shows it (32 hex chars), or None if untraced."""
+    ctx = trace.get_current_span().get_span_context()
+    return format(ctx.trace_id, "032x") if ctx.is_valid else None
 
 
 def now_iso() -> str:
@@ -157,6 +182,11 @@ def log_event(event_type: str, user_id: str | None = None,
     _ensure_data()
     event = {"ts": now_iso(), "run_label": RUN_LABEL, "type": event_type,
              "user_id": user_id, "resource": resource, **detail}
+    # Links an audit line back to who asked and to the trace that explains it.
+    if _requester.get():
+        event["requester"] = _requester.get()
+    if current_trace_id():
+        event["trace_id"] = current_trace_id()
     line = json.dumps(event) + "\n"
     for name in (EVENTS, AUDIT_LOG):
         with open(DATA_DIR / name, "a") as f:  # append only, never rewritten
