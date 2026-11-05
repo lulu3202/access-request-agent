@@ -72,9 +72,9 @@ changed what happened.
 never invent users or resources; no duplicate grants.
 
 **Code:**
-- `agent/tools.py` `TOOL_SCHEMAS` (`# BOOK: Design`): three tools only.
+- `agent/tools.py` `TOOL_SCHEMAS` (`# PILLAR: Design`): three tools only.
 - `agent/prompt.py` `SYSTEM_PROMPT`: catalog as config, 12 rules.
-- `agent/agent.py` `_handle`: check_user-first, enforced in the loop (`# BOOK: Design`). A rejected write is a
+- `agent/agent.py` `_handle`: check_user-first, enforced in the loop (`# PILLAR: Design`). A rejected write is a
   `blocked:<tool>` step, span and count.
 
 **Evidence:**
@@ -95,12 +95,12 @@ never invent users or resources; no duplicate grants.
 deny inactive/terminated users without asking; pressure changes nothing; revocation needs no approval.
 
 **Code:**
-- `agent/tools.py` `grant_access` (`# BOOK: Control`): the gate lives in the tool.
+- `agent/tools.py` `grant_access` (`# PILLAR: Control`): the gate lives in the tool.
 - `agent/agent.py`:
   - `_needs_human` and `_proposal`: pause;
-  - `resume` (`# BOOK: Control`): Approve runs the call, Deny ends the request;
-  - `out_of_scope` (`# BOOK: Control`): the scope check;
-  - `_stopped` (`# BOOK: Control`): the emergency stop.
+  - `resume` (`# PILLAR: Control`): Approve runs the call, Deny ends the request;
+  - `out_of_scope` (`# PILLAR: Control`): the scope check;
+  - `_stopped` (`# PILLAR: Control`): the emergency stop.
 - `agent/store.py` `record_approval`: only a human decision writes an approval.
 - `app.py`: the Pause switch.
 
@@ -121,9 +121,9 @@ deny inactive/terminated users without asking; pressure changes nothing; revocat
 **Asks:** revoke restores the state from before the grant and logs the reason; a drill proves it.
 
 **Code:**
-- `agent/tools.py` `revoke_access` (`# BOOK: Recover`): works for any user status and logs the reason.
-- `agent/store.py` `reset_data` (`# BOOK: Recover`).
-- `drills/recover_drill.py` `main` (`# BOOK: Recover`).
+- `agent/tools.py` `revoke_access` (`# PILLAR: Recover`): works for any user status and logs the reason.
+- `agent/store.py` `reset_data` (`# PILLAR: Recover`).
+- `drills/recover_drill.py` `main` (`# PILLAR: Recover`).
 
 **Evidence:**
 - The drill starts from the monitor's "terminated user still has access: erik.holm -> jira" alert, revokes
@@ -138,10 +138,10 @@ deny inactive/terminated users without asking; pressure changes nothing; revocat
 evaluators; results in Phoenix and in the terminal.
 
 **Code:**
-- `agent/agent.py` `setup_tracing`, `parse_decision`, `_block_call` and `_finish` (`# BOOK: Prove`).
+- `agent/agent.py` `setup_tracing`, `parse_decision`, `_block_call` and `_finish` (`# PILLAR: Prove`).
   `_finish` marks a claimed change that never ran as `INVALID`.
-- `evals/scorers.py` (`# BOOK: Prove`).
-- `evals/run_evals.py` `run_row` and `upload_to_phoenix` (`# BOOK: Prove`).
+- `evals/scorers.py` (`# PILLAR: Prove`).
+- `evals/run_evals.py` `run_row` and `upload_to_phoenix` (`# PILLAR: Prove`).
 
 **Evidence:**
 
@@ -173,9 +173,9 @@ bad move was recorded, not hidden.
 from an alert to who asked and why.
 
 **Code:**
-- `agent/store.py` `log_event` (`# BOOK: Operate`): appends every event to `data/audit_log.jsonl` (and to
+- `agent/store.py` `log_event` (`# PILLAR: Operate`): appends every event to `data/audit_log.jsonl` (and to
   `events.jsonl` for the current state). Events written during a request carry `requester` and `trace_id`.
-- `operate/monitor.py` `find_anomalies` (`# BOOK: Operate`): three rules. Access held by an inactive or
+- `operate/monitor.py` `find_anomalies` (`# PILLAR: Operate`): three rules. Access held by an inactive or
   terminated user; a sensitive/admin grant with no matching Approve; a grant made outside the agent (its
   latest grant event has no requester, because the agent loop stamps one on everything it does).
 - `app.py` Operate tab: anomalies, recent events with requester and `trace_id`, and events per day.

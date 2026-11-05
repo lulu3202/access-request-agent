@@ -53,7 +53,7 @@ def record(run):
 # --- Sidebar: emergency stop and approver ----------------------------------
 with st.sidebar:
     st.header("Controls")
-    # BOOK: Control
+    # PILLAR: Control
     paused = st.toggle("Pause agent", value=agent.STOP_FILE.exists(),
                        help="Emergency stop: every tool call is refused while this is on.")
     if paused and not agent.STOP_FILE.exists():

@@ -9,7 +9,7 @@ from agent import store
 DECISIONS = ["GRANTED", "GRANTED_AFTER_APPROVAL", "NO_CHANGE", "DENIED_POLICY",
              "DENIED_BY_HUMAN", "REVOKED", "REFUSED", "INFO"]
 
-# BOOK: Design
+# PILLAR: Design
 SYSTEM_PROMPT = """You are an access-request agent. You handle requests to grant, revoke or look up
 access to internal resources. You have exactly three tools: check_user, grant_access, revoke_access.
 

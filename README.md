@@ -1,13 +1,13 @@
 # Access-request agent
 
-The running hands-on example for the ebook **Trustworthy AI Agents**.
+The running hands-on example for my **Trustworthy AI Agents** series on Medium (free ebook coming soon).
 
 > **Don't trust the model. Contain it. Then prove it works.**
 
 A single Claude agent handles access requests in chat ("Asha Rao needs billing-db access for the quarter
 close") with exactly three tools over mock JSON data. Every safety rule is enforced in code. The prompt asks
-for the right behaviour, and the code makes sure of it. Lines marked `# BOOK: <Pillar>` are the snippets used
-in the book.
+for the right behaviour, and the code makes sure of it. Lines marked `# PILLAR: <Pillar>` are the snippets used
+in the series posts.
 
 This is a teaching example, not a product: mock data, one process, no real identity system.
 [CONTAINMENT_MAP.md](CONTAINMENT_MAP.md) lists what it proves and what it doesn't.
@@ -44,7 +44,7 @@ The same gates map onto any agent framework, such as hooks and permission rules 
 
 ## The five pillars, mapped to files
 
-| Pillar | What it asks | Where it lives (`# BOOK:` snippets) |
+| Pillar | What it asks | Where it lives (`# PILLAR:` snippets) |
 |---|---|---|
 | **Design** | Narrow by construction | `agent/tools.py` `TOOL_SCHEMAS` (three tools); `agent/prompt.py` `SYSTEM_PROMPT`; `agent/agent.py` check_user-first in `_handle` |
 | **Control** | Humans approve sensitive and admin access; the model can't talk its way past | `agent/tools.py` `grant_access` (approval gate); `agent/agent.py` `resume`, scope check and approval pause in `_handle`, `_stopped` (emergency stop); `agent/store.py` `record_approval`; `app.py` Pause switch; `evals/compromised_model.py` |

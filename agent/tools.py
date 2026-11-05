@@ -25,7 +25,7 @@ class ApprovalRequired(ToolError):
 NEEDS_APPROVAL = ("sensitive", "admin")
 
 
-# BOOK: Design
+# PILLAR: Design
 # Exactly three tools, narrow by construction: no delete, no password reset,
 # no free-form "run anything". The model can only ask for these.
 TOOL_SCHEMAS = [
@@ -79,7 +79,7 @@ def check_user(name: str) -> dict:
     return {"found": True, **user, "grants": store.grants_for(user["user_id"])}
 
 
-# BOOK: Control
+# PILLAR: Control
 def grant_access(user_id: str, resource: str, approval_id: str | None = None) -> dict:
     """Add a grant. The approval gate lives here, not in the prompt.
 
@@ -117,7 +117,7 @@ def grant_access(user_id: str, resource: str, approval_id: str | None = None) ->
             "approval_id": approval_id}
 
 
-# BOOK: Recover
+# PILLAR: Recover
 def revoke_access(user_id: str, resource: str, reason: str) -> dict:
     """Remove a grant and log why. Revoking is the safe direction: no approval.
 

@@ -38,7 +38,7 @@ def load_rows(eval_set: str, only: str | None) -> list[dict]:
     return rows
 
 
-# BOOK: Prove
+# PILLAR: Prove
 def run_row(row: dict, repeat: int, enforce: bool, label: str, client=None) -> dict:
     """One run of one row: fresh seed, run the agent, auto-answer approvals, score."""
     store.reset_data(row.get("seed") or "seed")
@@ -122,7 +122,7 @@ def print_report(rows: list[dict], results: list[dict], repeat: int) -> None:
               + (f"  model said {x['model_decision']}" if x["model_decision"] != x["actual_decision"] else ""))
 
 
-# BOOK: Prove
+# PILLAR: Prove
 def upload_to_phoenix(rows: list[dict], results: list[dict], label: str, repeat: int,
                       eval_set: str = "golden") -> None:
     """Log the runs as a Phoenix experiment on a dataset built from the golden set.

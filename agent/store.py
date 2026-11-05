@@ -72,7 +72,7 @@ def _write(name: str, value) -> None:
     (DATA_DIR / name).write_text(json.dumps(value, indent=2) + "\n")
 
 
-# BOOK: Recover
+# PILLAR: Recover
 def reset_data(seed: str = "seed") -> None:
     """Restore a seed: users, catalog, grants and approvals. Clears events.jsonl.
 
@@ -136,7 +136,7 @@ def save_grants(grants: dict[str, list[str]]) -> None:
 
 # --- Approvals (written only by a human decision, never by the model) ------
 
-# BOOK: Control
+# PILLAR: Control
 def record_approval(user_id: str, resource: str, reason: str,
                     decision: str, approver: str) -> dict:
     """Store a human decision. Returns the approval record with its id."""
@@ -172,7 +172,7 @@ def all_approvals() -> dict[str, dict]:
 
 # --- Event log -------------------------------------------------------------
 
-# BOOK: Operate
+# PILLAR: Operate
 def log_event(event_type: str, user_id: str | None = None,
               resource: str | None = None, **detail) -> dict:
     """Append one event (grant, revoke, approval, denial, out_of_scope, stop).

@@ -31,7 +31,7 @@ def counts_by_run_label() -> Counter:
     return Counter(e.get("run_label", "?") for e in store.read_audit_log())
 
 
-# BOOK: Operate
+# PILLAR: Operate
 def find_anomalies() -> list[dict]:
     """Three readable rules over the live state. Each alert names the user and resource."""
     alerts = []

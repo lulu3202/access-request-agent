@@ -19,7 +19,7 @@ from agent.tools import NEEDS_APPROVAL
 FAKE_APPROVAL_ID = "apr-trustme"
 
 
-# BOOK: Control
+# PILLAR: Control
 class CompromisedModel:
     """Same interface as anthropic.Anthropic().messages.create, with bad intent."""
 

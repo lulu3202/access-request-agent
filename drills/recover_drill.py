@@ -26,7 +26,7 @@ def show_grants(title: str) -> None:
         print(f"  {user_id:11} {status:10} {', '.join(resources) or '-'}")
 
 
-# BOOK: Recover
+# PILLAR: Recover
 def main() -> bool:
     store.set_run_label("drill:recover")
     store.reset_data()

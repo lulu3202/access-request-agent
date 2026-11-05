@@ -53,7 +53,7 @@ def model_id() -> str:
 tracer = trace.get_tracer("access-request-agent")  # no-op until setup_tracing() runs
 
 
-# BOOK: Prove
+# PILLAR: Prove
 def setup_tracing(project_name: str = "access-request-agent"):
     """Send traces to the local Phoenix server; auto-instrument the Anthropic SDK."""
     from phoenix.otel import register
@@ -79,7 +79,7 @@ def most_restrictive(decisions) -> str:
     return min(decisions, key=RESTRICTIVENESS.index)
 
 
-# BOOK: Prove
+# PILLAR: Prove
 def parse_decision(text: str) -> tuple[str, str]:
     """Read the final JSON line. No retry: anything missing or invalid is INVALID."""
     lines = [l.strip() for l in text.strip().splitlines() if l.strip() and not l.strip().startswith("```")]
@@ -154,7 +154,7 @@ def start(request: str, client=None, enforce_check_user_first: bool = True,
     return run
 
 
-# BOOK: Control
+# PILLAR: Control
 def resume(run: Run, decision: str, approver: str) -> Run:
     """A human answered the pending approval. Approve runs the proposed call; Deny ends the request."""
     pending, run.pending = run.pending, None
@@ -237,12 +237,12 @@ def _handle(run: Run, call: dict) -> dict:
 
     if name in ("grant_access", "revoke_access"):
         run.writes.append((name, args.get("user_id"), args.get("resource")))
-        # BOOK: Design
+        # PILLAR: Design
         # check_user must come first. Enforced here, not trusted to the prompt.
         if run.enforce_check_user_first and args.get("user_id") not in run.checked_users:
             return _block_call(run, name, args, "call check_user for this user first")
 
-        # BOOK: Control
+        # PILLAR: Control
         # Scope check: a write must be about the user (and resource) the request names.
         # Anything else is not run; it goes to a human as a proposal.
         why = run.enforce_scope and out_of_scope(run.request, args)
@@ -253,7 +253,7 @@ def _handle(run: Run, call: dict) -> dict:
             run.pending = _proposal(call, f"out of scope: {why}")
             return {}
 
-    # BOOK: Control
+    # PILLAR: Control
     # A sensitive/admin grant without a valid Approve pauses the loop for a human.
     # Policy failures (inactive user, unknown resource) go straight to the tool, which denies them.
     if name == "grant_access" and _needs_human(args):
@@ -322,7 +322,7 @@ def _execute(run: Run, name: str, args: dict) -> dict:
     return result
 
 
-# BOOK: Prove
+# PILLAR: Prove
 def _block_call(run: Run, name: str, args: dict, reason: str) -> dict:
     """A rejected call is never hidden: it is a step, a span and a count."""
     run.steps.append(f"blocked:{name}")
@@ -333,7 +333,7 @@ def _block_call(run: Run, name: str, args: dict, reason: str) -> dict:
     return {"error": f"blocked: {reason}"}
 
 
-# BOOK: Control
+# PILLAR: Control
 def _stopped(run: Run, name: str, args: dict) -> bool:
     """Emergency stop. If the STOP file exists, refuse the call before it runs."""
     if not STOP_FILE.exists():
@@ -353,7 +353,7 @@ CLAIMS_NEED_EVIDENCE = {"GRANTED", "GRANTED_AFTER_APPROVAL", "REVOKED"}
 
 
 def _finish(run: Run, decision: str, summary: str) -> None:
-    # BOOK: Prove
+    # PILLAR: Prove
     # The model's label is checked against what code saw happen:
     # - claiming a grant or revoke that never ran is INVALID (the row fails);
     # - a human Deny or a policy denial cannot be reported as something milder.

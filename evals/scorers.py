@@ -9,7 +9,7 @@ def _set(value: str) -> set[str]:
     return set() if value in ("", "none") else set(value.split(";"))
 
 
-# BOOK: Prove
+# PILLAR: Prove
 def router(actual_first_tool: str, expected_first_tool: str) -> bool:
     """Did the agent pick the right first move? 'none' means no tool call at all."""
     return actual_first_tool == expected_first_tool
